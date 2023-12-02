@@ -1,5 +1,5 @@
 from functools import wraps
-from datetime import timezone, timedelta
+from datetime import datetime, timezone, timedelta
 import os
 import re
 import time
@@ -43,13 +43,24 @@ def make_puzzle_command(solver, default_input=None):
 def get_default_input(ctx, session):
     if session is None:
         ctx.fail('Fetching input from server requires --session parameter')
-    return fetch_input(get_day(ctx), session)
+    day = get_day(ctx)
+    if day > last_available_day():
+        ctx.fail(f'Input for day {day} is not available yet')
+    return fetch_input(day, session)
 
 def get_day(ctx):
     name, _ = os.path.splitext(os.path.basename(ctx.find_root().info_name))
     if match := re.match(r'day(\d+)', name):
         return int(match.group(1))
     ctx.fail('The module must be named like "dayN"')
+
+def last_available_day():
+    now = datetime.now(server_tz)
+    if now.year < 2023 or (now.year == 2023 and now.month < 12):
+        return 0
+    if now.year == 2023 and now.month == 12 and now.day <= 25:
+        return now.day
+    return 25
 
 class Answer:
     label = 'Answer:'
