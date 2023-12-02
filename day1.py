@@ -1,5 +1,4 @@
 import aoc
-from collections import defaultdict
 
 digits_as_words = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine']
 
@@ -16,23 +15,13 @@ def calibration_value(s):
     return int(digits[0] + digits[-1])
 
 def real_calibration_value(s):
-    return int(find_first_digit(s) + find_last_digit(s))
-
-def find_first_digit(s):
-    for i in range(len(s)):
-        if s[i].isdigit():
-            return s[i]
-        for d, word in enumerate(digits_as_words):
-            if s[i : i + len(word)] == word:
-                return str(d)
-
-def find_last_digit(s):
-    for i in reversed(range(len(s))):
-        if s[i].isdigit():
-            return s[i]
-        for d, word in enumerate(digits_as_words):
-            if s[i + 1 - len(word) : i + 1] == word:
-                return str(d)
+    for d1, word1 in enumerate(digits_as_words):
+        for d2, word2 in enumerate(digits_as_words):
+            if word1[-1] == word2[0]:
+                s = s.replace(word1 + word2[1:], str(d1) + str(d2))
+    for d, word in enumerate(digits_as_words):
+        s = s.replace(word, str(d))
+    return calibration_value(s)
 
 if __name__ == '__main__':
     aoc.main()

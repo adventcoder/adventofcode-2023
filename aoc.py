@@ -54,7 +54,7 @@ def fetch_input(session, day):
         res = requests.get(f'{server_url}/day/{day}/input', cookies={ 'session': session })
         res.raise_for_status()
         return res.text
-    return cache.cache(f'inputs/{session}/day{day}.txt', get_from_server)
+    return cache.cache(f'inputs/{session[:12]}/day{day}.txt', get_from_server)
 
 class Answer:
     label = 'Answer:'
