@@ -1,7 +1,7 @@
 import aoc
 from math import prod
 
-colors = ['red', 'green', 'blue']
+max_counts = { 'red': 12, 'green': 13, 'blue': 14}
 
 @aoc.puzzle()
 def part1(inp):
@@ -9,26 +9,33 @@ def part1(inp):
 
 @aoc.puzzle()
 def part2(inp):
-    return sum(prod(max_hand(hands)) for _, hands in parse_games(inp))
+    return sum(prod(min_counts(hands).values()) for _, hands in parse_games(inp))
 
 def parse_games(inp):
     for line in inp.splitlines():
-        label, body = line.split(':')
-        id = int(label.split()[1])
-        hands = []
-        for chunk in body.split(';'):
-            hand = [0] * 3
-            tokens = chunk.replace(',', '').split()
-            for i in range(0, len(tokens), 2):
-                hand[colors.index(tokens[i + 1])] = int(tokens[i])
-            hands.append(hand)
-        yield id, hands
+        label, rest = line.split(':')
+        id = int(label.split()[-1])
+        yield id, parse_hands(rest)
+
+def parse_hands(s):
+    for chunk in s.split(';'):
+        yield parse_hand(chunk)
+
+def parse_hand(s):
+    tokens = s.replace(',', '').split()
+    for i in range(0, len(tokens), 2):
+        yield int(tokens[i]), tokens[i + 1]
 
 def possible(hand):
-    return hand[0] <= 12 and hand[1] <= 13 and hand[2] <= 14
+    return all(n <= max_counts[color] for n, color in hand)
 
-def max_hand(hands):
-    return [max(hand[i] for hand in hands) for i in range(3)]
+def min_counts(hands):
+    counts = { 'red': 0, 'green': 0, 'blue': 0}
+    for hand in hands:
+        for n, color in hand:
+            if n > counts[color]:
+                counts[color] = n
+    return counts
 
 if __name__ == '__main__':
     aoc.main()
