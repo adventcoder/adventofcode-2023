@@ -1,31 +1,38 @@
 import aoc
+from collections import defaultdict
 
-spellings = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine']
+digits_as_words = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine']
 
 @aoc.puzzle()
 def part1(doc):
-    return sum(calibration_value(digits(line)) for line in doc.splitlines())
+    return sum(calibration_value(s) for s in doc.splitlines())
 
 @aoc.puzzle()
 def part2(doc):
-    return sum(calibration_value(digits_with_spellings(line)) for line in doc.splitlines())
+    return sum(real_calibration_value(s) for s in doc.splitlines())
 
-def calibration_value(digits):
-    return digits[0] * 10 + digits[-1]
+def calibration_value(s):
+    digits = [c for c in s if c.isdigit()]
+    return int(digits[0] + digits[-1])
 
-def digits(line):
-    return [int(c) for c in line if c.isdigit()]
+def real_calibration_value(s):
+    return int(find_first_digit(s) + find_last_digit(s))
 
-def digits_with_spellings(line):
-    digits = []
-    for i in range(len(line)):
-        if line[i].isdigit():
-            digits.append(int(line[i]))
-        else:
-            for digit, spelling in enumerate(spellings):
-                if line[i : i + len(spelling)] == spelling:
-                    digits.append(digit)
-    return digits
+def find_first_digit(s):
+    for i in range(len(s)):
+        if s[i].isdigit():
+            return s[i]
+        for d, word in enumerate(digits_as_words):
+            if s[i : i + len(word)] == word:
+                return str(d)
+
+def find_last_digit(s):
+    for i in reversed(range(len(s))):
+        if s[i].isdigit():
+            return s[i]
+        for d, word in enumerate(digits_as_words):
+            if s[i + 1 - len(word) : i + 1] == word:
+                return str(d)
 
 if __name__ == '__main__':
     aoc.main()
