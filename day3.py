@@ -6,9 +6,15 @@ def part1(inp):
     grid = inp.splitlines()
     ans = 0
     for y, line in enumerate(grid):
-        for x0, x1, n in get_numbers(line):
-            if any(is_symbol(grid[y][x]) for x, y in boundary(grid, x0, x1, y)):
-                ans += n
+        x0 = 0
+        while x0 < len(line):
+            if line[x0].isdigit():
+                x1 = find_number_end(line, x0) + 1
+                if any(is_symbol(get(grid, nx, ny)) for x in range(x0, x1) for nx, ny in neighbours(x, y)):
+                    ans += int(line[x0 : x1])
+                x0 = x1
+            else:
+                x0 += 1
     return ans
 
 @aoc.puzzle()
@@ -18,46 +24,37 @@ def part2(inp):
     for y, line in enumerate(grid):
         for x, c in enumerate(line):
             if c == '*':
-                ns = list(get_adj_numbers(grid, x, y))
-                if len(ns) == 2:
-                    ans += prod(ns)
+                nums = {}
+                for nx, ny in neighbours(x, y):
+                    if get(grid, nx, ny).isdigit():
+                        x0 = find_number_start(grid[ny], nx)
+                        x1 = find_number_end(grid[ny], nx) + 1
+                        nums[(x0, x1, ny)] = int(grid[ny][x0 : x1])
+                if len(nums) == 2:
+                    ans += prod(nums.values())
     return ans
 
 def is_symbol(c):
     return c != '.' and not c.isdigit()
 
-def get_adj_numbers(grid, x, y):
-    #TODO: do this more efficiently without recomputing the whole lines
-    y0 = max(y - 1, 0)
-    y1 = min(y + 1, len(grid) - 1)
-    for y in range(y0, y1 + 1):
-        for x0, x1, n in get_numbers(grid[y]):
-            if x - 1 <= x1 and x + 1 >= x0:
-                yield n
+def neighbours(x, y):
+    for dx in range(-1, 2):
+        for dy in range(-1, 2):
+            if dx != 0 or dy != 0:
+                yield x + dx, y + dy
 
-def get_numbers(line):
-    x = 0
-    while x < len(line):
-        if line[x].isdigit():
-            x0 = x
-            while x + 1 < len(line) and line[x + 1].isdigit():
-                x += 1
-            yield x0, x, int(line[x0 : x + 1])
+def get(grid, x, y):
+    return grid[y][x] if 0 <= y < len(grid) and 0 <= x < len(grid[y]) else '.'
+
+def find_number_start(line, x):
+    while x > 0 and line[x - 1].isdigit():
+        x -= 1
+    return x
+
+def find_number_end(line, x):
+    while x + 1 < len(line) and line[x + 1].isdigit():
         x += 1
-
-def boundary(grid, x0, x1, y):
-    if x0 > 0:
-        x0 -= 1
-        yield x0, y
-    if x1 < len(grid[y]) - 1:
-        x1 += 1
-        yield x1, y
-    if y > 0:
-        for x in range(x0, x1 + 1):
-            yield x, y - 1
-    if y < len(grid) - 1:
-        for x in range(x0, x1 + 1):
-            yield x, y + 1
+    return x
 
 if __name__ == '__main__':
     aoc.main()
