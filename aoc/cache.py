@@ -5,14 +5,14 @@ import inspect
 
 root = '.'
 
-def cached(subpath_spec, func=None):
-    if func is None:
-        return lambda func: cached(subpath_spec, func)
-    @wraps(func)
-    def cached_func(*args, **kwargs):
-        subpath = subpath_spec.format(**inspect.getcallargs(func, *args, **kwargs))
-        return cache(subpath, lambda: func(*args, **kwargs))
-    return cached_func
+def cached(subpath_spec):
+    def wrap(func):
+        @wraps(func)
+        def new_func(*args, **kwargs):
+            subpath = subpath_spec.format(**inspect.getcallargs(func, *args, **kwargs))
+            return cache(subpath, lambda: func(*args, **kwargs))
+        return new_func
+    return wrap
 
 def cache(subpath, func):
     text = read(subpath)
