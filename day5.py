@@ -31,6 +31,8 @@ def parse_mapping(chunk):
         dest_start, source_start, size = parse_ints(line)
         mapping.append((Interval(source_start, source_start + size - 1), dest_start - source_start))
     mapping.sort(key=lambda pair: pair[0].start)
+    for i in range(len(mapping) - 1):
+        assert mapping[i][0].end < mapping[i+1][0].start
     return mapping
 
 def parse_ints(s):
