@@ -1,6 +1,6 @@
 from functools import wraps
 import os
-import warnings
+import logging
 import inspect
 
 dirname = '__cache__'
@@ -22,28 +22,28 @@ def cache(subpath, func):
     return text
 
 def read(subpath):
+    path = os.path.join(dirname, subpath)
     try:
-        path = os.path.join(dirname, subpath)
         if os.path.exists(path):
             with open(path, 'r') as file:
                 return file.read()
-    except Exception:
-        warnings.warn(f'cache read failed: {subpath}')
+    except Exception as err:
+        logging.warning('cache read failed: %s', path, exc_info=err)
 
 def write(subpath, text):
+    path = os.path.join(dirname, subpath)
     try:
-        path = os.path.join(dirname, subpath)
-        os.makedirs(os.path.dirname(path))
+        os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, 'w') as file:
             return file.write(text)
-    except Exception:
-        warnings.warn(f'cache write failed: {subpath}')
-        delete(subpath)
+    except Exception as err:
+        logging.warning('cache write failed: %s', path, exc_info=err)
+        delete(path)
 
 def delete(subpath):
+    path = os.path.join(dirname, subpath)
     try:
-        path = os.path.join(dirname, subpath)
         if os.path.exists(path):
             os.remove(path)
-    except Exception:
-        warnings.warn(f'cache delete failed: {subpath}')
+    except Exception as err:
+        logging.warning('cache delete failed: %s', path, exc_info=err)
