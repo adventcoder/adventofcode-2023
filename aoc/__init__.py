@@ -13,17 +13,18 @@ def main():
 def command(*args, **kwargs):
     return main.command(*args, **kwargs)
 
-def puzzle(*args, **kwargs):
+def puzzle(input=None):
     def wrap(func):
-        @command(*args, **kwargs)
-        @pass_input()
+        @command()
+        @pass_input(input)
         @wraps(func)
         def new_func(*args, **kwargs):
             print(Answer(func, *args, **kwargs))
         return new_func
     return wrap
 
-def pass_input(day=None):
+def pass_input(input=None):
+    local_input = input
     def wrap(func):
         @click.option('--session', envvar='ADVENTOFCODE_SESSION')
         @click.option('--input')
@@ -35,15 +36,19 @@ def pass_input(day=None):
                 if input_file is not None:
                     input = input_file.read()
                 else:
-                    day = find_day(ctx)
-                    if day > server.last_available_day():
-                        ctx.fail(f'Input for day {day} is not available yet')
-                    if session is None:
-                        ctx.fail('Could not determine sesssion from environment')
-                    input = server.fetch_input(day, session)
+                    input = local_input or get_server_input(ctx, session)
             return ctx.invoke(func, input, *args, **kwargs)
         return new_func
     return wrap
+
+def get_server_input(ctx, session):
+    day = find_day(ctx)
+    if day > server.last_available_day():
+        ctx.fail(f'Input for day {day} is not available yet')
+    if session is None:
+        ctx.fail('Could not determine sesssion from environment')
+    return server.fetch_input(day, session)
+
 
 def find_day(ctx):
     root = ctx.find_root()
