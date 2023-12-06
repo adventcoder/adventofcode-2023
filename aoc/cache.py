@@ -3,7 +3,7 @@ import os
 import warnings
 import inspect
 
-root = '.'
+dirname = '__cache__'
 
 def cached(subpath_spec):
     def wrap(func):
@@ -23,7 +23,7 @@ def cache(subpath, func):
 
 def read(subpath):
     try:
-        path = os.path.join(root, subpath)
+        path = os.path.join(dirname, subpath)
         if os.path.exists(path):
             with open(path, 'r') as file:
                 return file.read()
@@ -32,24 +32,17 @@ def read(subpath):
 
 def write(subpath, text):
     try:
-        make_dirs(os.path.dirname(subpath))
-        path = os.path.join(root, subpath)
+        path = os.path.join(dirname, subpath)
+        os.makedirs(os.path.dirname(path))
         with open(path, 'w') as file:
             return file.write(text)
     except Exception:
         warnings.warn(f'cache write failed: {subpath}')
         delete(subpath)
 
-def make_dirs(subpath):
-    if subpath:
-        path = os.path.join(root, subpath)
-        if not os.path.exists(path):
-            make_dirs(os.path.dirname(subpath))
-            os.mkdir(path)
-
 def delete(subpath):
     try:
-        path = os.path.join(root, subpath)
+        path = os.path.join(dirname, subpath)
         if os.path.exists(path):
             os.remove(path)
     except Exception:

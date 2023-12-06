@@ -13,7 +13,7 @@ def last_available_day():
         return now.day
     return 25
 
-@cache.cached('inputs/{session}/day{day}.txt')
+@cache.cached('{session}/day{day}.txt')
 def fetch_input(day, session):
     res = requests.get(f'{url}/day/{day}/input', cookies={ 'session': session })
     res.raise_for_status()
