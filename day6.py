@@ -18,12 +18,11 @@ def part2(inp):
 
 def ways(T, D):
     # t(T-t) > D
-    # (T/2) - sqrt((T/2)^2-D) < t < (T/2) + sqrt((T/2)^2-D)
-    u = T/2
-    v = sqrt(u*u - D)
-    t_min = floor(u - v) + 1
-    t_max = ceil(u + v) - 1
-    return t_max - t_min + 1
+    # (T-Δ)/2 < t < (T+Δ)/2, Δ=sqrt(T^2-4D)
+    Δ = sqrt(T*T - 4*D)
+    tmin = floor((T - Δ)/2) + 1
+    tmax = ceil((T + Δ)/2) - 1
+    return tmax - tmin + 1
 
 if __name__ == '__main__':
     aoc.main()
