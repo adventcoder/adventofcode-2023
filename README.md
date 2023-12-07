@@ -20,3 +20,6 @@ Took me far too long to realise I should separate the loop over intervals and th
 
 Day 6:
 Just a quadratic equation. Past years have had more difficult problems to find the analytical solution. We're having more intersting questions earlier this year it seems, but easier versions of them.
+
+Day 7:
+I went straight to using the most common frequencies for type ordering. Joker logic is kind of messy. Even messier combining both parts of todays puzzle.
