@@ -2,6 +2,8 @@ import aoc
 from collections import Counter
 from utils import table
 
+#TODO: cleanup
+
 @aoc.puzzle()
 def part1(inp):
     return solve(inp, False)
