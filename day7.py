@@ -2,41 +2,31 @@ import aoc
 from collections import Counter
 from utils import table
 
-#TODO: cleanup
-
 @aoc.puzzle()
 def part1(inp):
-    return solve(inp, False)
+    return winnings(inp)
 
 @aoc.puzzle()
 def part2(inp):
-    return solve(inp, True)
+    return winnings(inp.replace('J', '?'))
 
-def solve(inp, wildcard):
-    pairs = table(inp, (str, int))
-    pairs.sort(key=lambda pair: strength(pair[0], wildcard))
-    return sum((i+1)*pair[1] for i, pair in enumerate(pairs))
+def winnings(inp):
+    pairs = [line.split() for line in inp.splitlines()]
+    pairs.sort(key=lambda pair: strength(pair[0]))
+    return sum((i+1)*int(pair[1]) for i, pair in enumerate(pairs))
 
-def strength(hand, wildcard):
-    return (type(hand, wildcard), values(hand, wildcard))
+def strength(hand):
+    return (type(hand), values(hand))
 
-def type(hand, wildcard):
+def type(hand):
     hist = Counter(hand)
-    jokers = 0
-    if wildcard:
-        jokers = hist.pop('J') if 'J' in hist else 0
-    if hist:
-        counts = sorted(hist.values(), reverse=True)
-        counts[0] += jokers
-        return counts
-    else:
-        return [jokers]
+    wild = hist.pop('?') if len(hist) > 1 and '?' in hist else 0
+    counts = sorted(hist.values(), reverse=True)
+    counts[0] += wild
+    return counts
 
-def values(hand, wildcard=False):
-    if wildcard:
-        return values(hand.replace('J', '1'))
-    else:
-        return [int(c) if c.isdigit() else 10 + 'TJQKA'.index(c) for c in hand]
+def values(hand):
+    return ['?23456789TJQKA'.index(c) for c in hand]
 
 if __name__ == '__main__':
     aoc.main()
