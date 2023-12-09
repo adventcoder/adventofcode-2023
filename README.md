@@ -23,3 +23,6 @@ Just a quadratic equation. Past years have had more difficult problems to find t
 
 Day 7:
 I went straight to using the most common frequencies for type ordering. Joker logic is kind of messy. Even messier combining both parts of todays puzzle.
+
+Day 8:
+Jumped straight to LCM in total obliviousness, only to learn later that there are so many problems...

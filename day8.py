@@ -1,33 +1,62 @@
 import aoc
 import re
-from itertools import cycle
 from math import lcm
 
 @aoc.puzzle()
 def part1(inp):
-    return Map(inp).steps('AAA', lambda name: name == 'ZZZ')
+    nodes, dirs = parse_map(inp)
+    state = State(nodes, dirs, 'AAA')
+    while state.pos != 'ZZZ':
+        state.step()
+    return state.steps
 
 @aoc.puzzle()
 def part2(inp):
-    map = Map(inp)
-    total = 1
-    for start in filter(lambda name: name.endswith('A'), map.nodes.keys()):
-        total = lcm(total, map.steps(start, lambda name: name.endswith('Z')))
-    return total
+    nodes, dirs = parse_map(inp)
+    cycles = find_cycles(nodes, dirs)
+    return lcm(*cycles)
 
-class Map:
-    def __init__(self, inp):
-        self.dirs, chunk = inp.split('\n\n')
-        self.nodes = {}
-        for line in chunk.splitlines():
-            name, *subnames = re.findall('\w+', line)
-            self.nodes[name] = subnames
+def parse_map(inp):
+    dirs, chunk = inp.split('\n\n')
+    nodes = {}
+    for line in chunk.splitlines():
+        name, *subnames = re.findall('\w+', line)
+        nodes[name] = subnames
+    return nodes, dirs
 
-    def steps(self, pos, is_end):
-        for i, dir in enumerate(cycle(self.dirs)):
-            pos = self.nodes[pos]['LR'.index(dir)]
-            if is_end(pos):
-                return i + 1
+def find_cycles(nodes, dirs):
+    cycles = []
+    for name in nodes.keys():
+        if name.endswith('A'):
+            state = State(nodes, dirs, name)
+            while not state.pos.endswith('Z'):
+                state.step()
+            end = state.pos
+            offset = state.steps
+            state.step()
+            while state.pos != end:
+                if state.pos.endswith('Z'):
+                    raise ValueError('Each start must have only one corresponding end')
+                state.step()
+            cycle = state.steps - offset
+            if offset != cycle:
+                raise ValueError('Distance from start to end must be the same as the distance from end to end')
+            if cycle % len(dirs) != 0:
+                raise ValueError('Distance must be a multiple of the number of directions')
+            cycles.append(cycle)
+    return cycles
+
+class State:
+    def __init__(self, nodes, dirs, start):
+        self.nodes = nodes
+        self.dirs = dirs
+        self.pos = start
+        self.steps = 0
+
+    def step(self):
+        dir = self.dirs[self.steps % len(self.dirs)]
+        self.pos = self.nodes[self.pos]['LR'.index(dir)]
+        self.steps += 1
 
 if __name__ == '__main__':
     aoc.main()
