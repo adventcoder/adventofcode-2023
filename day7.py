@@ -1,6 +1,5 @@
 import aoc
 from collections import Counter
-from utils import table
 
 @aoc.puzzle()
 def part1(inp):

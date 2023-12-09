@@ -26,3 +26,6 @@ I went straight to using the most common frequencies for type ordering. Joker lo
 
 Day 8:
 Jumped straight to LCM in total obliviousness, only to learn later that there are so many problems...
+
+Day 9:
+Extrapolating backwards wasn't much different than forwards. I was messing around with writing a little library for Newton Series recently so was ready for something more difficult.
