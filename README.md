@@ -29,3 +29,9 @@ Jumped straight to LCM in total obliviousness, only to learn later that there ar
 
 Day 9:
 Extrapolating backwards wasn't much different than forwards. I was messing around with writing a little library for Newton Series recently so was ready for something more difficult.
+
+Day 10:
+Interesting problem today. I didn't want to deal with making flood fill work so eventually ended up solving it with horizontal scan lines keeping track of inside/outside which was easier than I thought it would be. Verticals are '|', 'F-*J', 'L-*7'. Rewrote later to use shoelace formula after looking at other solutions.
+
+Day 11:
+Easy problem today. Can be optimised by totalling each axis independently.
