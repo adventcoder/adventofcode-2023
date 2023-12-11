@@ -34,4 +34,4 @@ Day 10:
 Interesting problem today. I didn't want to deal with making flood fill work so eventually ended up solving it with horizontal scan lines keeping track of inside/outside which was easier than I thought it would be. Verticals are '|', 'F-*J', 'L-*7'. Rewrote later to use shoelace formula after looking at other solutions.
 
 Day 11:
-Easy problem today. Can be optimised by totalling each axis independently.
+Easy problem today. Can be optimised by totalling each axis independently. Worked out a formula for summing over all the pairs and now the code is totally inscrutable.

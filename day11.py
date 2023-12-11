@@ -1,28 +1,29 @@
 import aoc
-from itertools import combinations
 
 @aoc.puzzle()
 def part1(inp):
-    return total_distance(inp, 2)
+    return solve(inp, 2)
 
 @aoc.puzzle()
 def part2(inp):
-    return total_distance(inp, 1000000)
+    return solve(inp, 1000000)
 
-def total_distance(inp, factor):
+def solve(inp, factor):
     grid = inp.splitlines()
-    total = 0
-    for rows in (grid, zip(*grid)):
-        for (y1, n1), (y2, n2) in combinations(expand(rows, factor), 2):
-            total += n1*n2*abs(y2-y1)
-    return total
+    return total_distance(grid, factor) + total_distance(zip(*grid), factor)
 
-def expand(rows, factor):
+def total_distance(rows, factor):
+    N = 0
+    S1 = 0
+    S2 = 0
     y = 0
     for row in rows:
         n = row.count('#')
-        yield y, n
+        N += n
+        S1 += (2*N - n)*n*y
+        S2 += n*y
         y += factor**(n==0)
+    return S1 - N*S2
 
 if __name__ == '__main__':
     aoc.main()
