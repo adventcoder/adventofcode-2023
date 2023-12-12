@@ -19,9 +19,9 @@ def part2(inp):
 def ways(T, D):
     # t(T-t) > D
     # (T-Δ)/2 < t < (T+Δ)/2, Δ=sqrt(T^2-4D)
-    Δ = sqrt(T*T - 4*D)
-    tmin = floor((T - Δ)/2) + 1
-    tmax = ceil((T + Δ)/2) - 1
+    disc = sqrt(T*T - 4*D)
+    tmin = floor((T - disc)/2) + 1
+    tmax = ceil((T + disc)/2) - 1
     return tmax - tmin + 1
 
 if __name__ == '__main__':
