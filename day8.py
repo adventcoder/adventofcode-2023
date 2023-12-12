@@ -4,59 +4,57 @@ from math import lcm
 
 @aoc.puzzle()
 def part1(inp):
-    nodes, dirs = parse_map(inp)
-    state = State(nodes, dirs, 'AAA')
-    while state.pos != 'ZZZ':
-        state.step()
-    return state.steps
+    return Map(inp).steps('AAA', lambda pos: pos == 'ZZZ')
 
 @aoc.puzzle()
 def part2(inp):
-    nodes, dirs = parse_map(inp)
-    cycles = find_cycles(nodes, dirs)
-    return lcm(*cycles)
+    map = Map(inp)
+    sizes = []
+    for start in map.findall(lambda pos: pos.endswith('A')):
+        offsets, start, size = map.steps_full(start, lambda pos: pos.endswith('Z'))
+        assert len(offsets) == 1 and offsets[0] >= start and offsets[0] == size
+        sizes.append(size)
+    return lcm(*sizes)
 
-def parse_map(inp):
-    dirs, chunk = inp.split('\n\n')
-    nodes = {}
-    for line in chunk.splitlines():
-        name, *subnames = re.findall('\w+', line)
-        nodes[name] = subnames
-    return nodes, dirs
+class Map:
+    def __init__(self, inp):
+        self.dirs, chunk = inp.split('\n\n')
+        self.nodes = {}
+        for line in chunk.splitlines():
+            name, *subnames = re.findall('\w+', line)
+            self.nodes[name] = subnames
 
-def find_cycles(nodes, dirs):
-    cycles = []
-    for name in nodes.keys():
-        if name.endswith('A'):
-            state = State(nodes, dirs, name)
-            while not state.pos.endswith('Z'):
-                state.step()
-            end = state.pos
-            offset = state.steps
-            state.step()
-            while state.pos != end:
-                if state.pos.endswith('Z'):
-                    raise ValueError('Each start must have only one corresponding end')
-                state.step()
-            cycle = state.steps - offset
-            if offset != cycle:
-                raise ValueError('Distance from start to end must be the same as the distance from end to end')
-            if cycle % len(dirs) != 0:
-                raise ValueError('Distance must be a multiple of the number of directions')
-            cycles.append(cycle)
-    return cycles
+    def findall(self, pred):
+        return filter(pred, self.nodes)
 
-class State:
-    def __init__(self, nodes, dirs, start):
-        self.nodes = nodes
-        self.dirs = dirs
-        self.pos = start
-        self.steps = 0
+    def steps(self, start, isend):
+        pos = start
+        steps = 0
+        while True:
+            for dir in self.dirs:
+                if isend(pos):
+                    return steps
+                pos = self.step(pos, dir)
+                steps += 1
 
-    def step(self):
-        dir = self.dirs[self.steps % len(self.dirs)]
-        self.pos = self.nodes[self.pos]['LR'.index(dir)]
-        self.steps += 1
+    def steps_full(self, start, isend):
+        pos = start
+        steps = 0
+        seen = {}
+        offsets = []
+        while True:
+            for i, dir in enumerate(self.dirs):
+                state = (pos, i)
+                if state in seen:
+                    return offsets, seen[state], steps - seen[state]
+                seen[state] = steps
+                if isend(pos):
+                    offsets.append(steps)
+                pos = self.step(pos, dir)
+                steps += 1
+
+    def step(self, pos, dir):
+        return self.nodes[pos]['LR'.index(dir)]
 
 if __name__ == '__main__':
     aoc.main()
