@@ -12,16 +12,18 @@ def find_digit(s):
 
 @aoc.puzzle()
 def part2(inp):
-    lines = inp.splitlines()
-    first_digits = map(digit_finder(digit_names), lines)
-    last_digits = map(digit_finder([name[::-1] for name in digit_names]), (line[::-1] for line in lines))
-    return sum(int(a + b) for a, b in zip(first_digits, last_digits))
+    first_digit = digit_finder(digit_names)
+    last_digit = digit_finder(name[::-1] for name in digit_names)
+    return sum(int(first_digit(s) + last_digit(s[::-1])) for s in inp.splitlines())
 
 def digit_finder(names):
-    regex = re.compile('|'.join([r'[0-9]'] + [re.escape(name) for name in names]))
+    digits = {}
+    for d, name in enumerate(names):
+        digits[name] = str(d)
+    regex = re.compile('|'.join([r'[0-9]', *map(re.escape, digits.keys())]))
     def find_digit(s):
         group = regex.search(s).group()
-        return group if group.isdigit() else str(names.index(group))
+        return group if group.isdigit() else digits[group]
     return find_digit
 
 if __name__ == '__main__':
