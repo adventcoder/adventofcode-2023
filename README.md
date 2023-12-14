@@ -37,4 +37,7 @@ Day 11:
 Easy problem today. Can be optimised by totalling each axis independently. Worked out a formula for summing over all the pairs and now the code is totally incomprehensible. Oh well.
 
 Day 12:
-Did it the obvious way. No idea how to make it faster. Feels like you could split on '.' and solve each subgroup separately, but idk if that would just be worse or not.
+Did it the obvious way. No idea how to make it faster. Feels like you could split on '.' and solve each subgroup separately, but idk if that would just be worse or not. Later started looking into using NFA's for the solution.
+
+Day 13:
+Just bruteforced it. Might return later.
