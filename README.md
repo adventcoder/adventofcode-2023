@@ -43,4 +43,4 @@ Day 13:
 Just bruteforced it. Might return later.
 
 Day 14:
-Just implemented in an obvious way. Very slow. Probably won't revisit.
+Just implemented in an obvious way. Kind of slow. Probably won't revisit.
