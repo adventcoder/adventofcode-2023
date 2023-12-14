@@ -41,3 +41,6 @@ Did it the obvious way. No idea how to make it faster. Feels like you could spli
 
 Day 13:
 Just bruteforced it. Might return later.
+
+Day 14:
+Just implemented in an obvious way. Very slow. Probably won't revisit.
