@@ -44,3 +44,6 @@ Just bruteforced it. Might return later.
 
 Day 14:
 Just implemented in an obvious way. Kind of slow. Probably won't revisit.
+
+Day 15:
+Just follow the overly wordy instructions. 
