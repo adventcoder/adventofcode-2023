@@ -2,24 +2,27 @@ import aoc
 
 @aoc.puzzle()
 def part1(inp):
-    return sum(hash(step) for step in inp.strip().split(','))
+    return sum(map(hash, steps(inp)))
 
 @aoc.puzzle()
 def part2(inp):
     hashmap = Hashmap()
-    for step in inp.strip().split(','):
+    for step in steps(inp):
         if step[-1] == '-':
             hashmap.clear(step[:-1])
         else:
             label, value = step.split('=')
             hashmap.store(label, int(value))
-    return sum((i+1)*(j+1)*value for i, (_, values) in enumerate(hashmap.boxes) for j, value in enumerate(values))
+    return hashmap.power()
+
+def steps(inp):
+    return inp.strip().split(',')
 
 def hash(s):
-    value = 0
+    val = 0
     for c in s:
-        value = (value + ord(c)) * 17 % 256
-    return value
+        val = (val + ord(c)) * 17 % 256
+    return val
 
 class Hashmap:
     def __init__(self):
@@ -39,6 +42,14 @@ class Hashmap:
             i = labels.index(label)
             labels.pop(i)
             values.pop(i)
+
+    def power(self):
+        total = 0
+        for i, box in enumerate(self.boxes):
+            _, values = box
+            for j, value in enumerate(values):
+                total += (i+1)*(j+1)*value
+        return total
 
 if __name__ == '__main__':
     aoc.main()
