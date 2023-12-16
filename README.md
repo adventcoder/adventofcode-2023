@@ -47,3 +47,6 @@ Just implemented in an obvious way. Kind of slow. Probably won't revisit.
 
 Day 15:
 Just follow the overly wordy instructions. 
+
+Day 16:
+Brute forced again, and it's the slowly solution yet. Part 2 can probably be done more efficiently by detecting loops in the graph beforehand or something like that.
