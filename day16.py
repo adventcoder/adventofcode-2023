@@ -1,54 +1,56 @@
 import aoc
-from collections import Counter
 
 @aoc.puzzle()
 def part1(inp):
-    return energy(inp.split(), 0, 0, 1, 0)
+    return energy(inp.split(), (0, 0, 1, 0))
 
+#TODO: very slow
 @aoc.puzzle()
 def part2(inp):
-    #TODO: very slow
     grid = inp.split()
-    return max(energy(grid, *beam) for beam in beams(grid))
+    return max(energy(grid, start) for start in starts(grid))
 
-def beams(grid):
-    w = len(grid[0])
-    h = len(grid)
-    for x in range(w):
+def starts(grid):
+    for x in range(len(grid[0])):
         yield x, 0, 0, 1
-        yield x, h - 1, 0, -1
-    for y in range(h):
-        w = len(grid[y])
+        yield x, len(grid) - 1, 0, -1
+    for y in range(len(grid)):
         yield 0, y, 0, 1
-        yield w - 1, y, 0, -1
+        yield len(grid[y]) - 1, y, 0, -1
 
-def energy(grid, x, y, dx, dy):
-    stack = [(x, y, dx, dy)]
-    seen = set()
-    energy = Counter()
+def neighbours(pos, grid):
+    x, y, dx, dy = pos
+    for ndx, ndy in reflect(dx, dy, grid[y][x]):
+        nx = x + ndx
+        ny = y + ndy
+        if 0 <= ny < len(grid) and 0 <= nx < len(grid[ny]):
+            yield nx, ny, ndx, ndy
+
+def reflect(dx, dy, c):
+    if c == '/':
+        yield -dy, -dx
+    elif c == '\\':
+        yield dy, dx
+    elif c == '|' and dy == 0:
+        yield 0, -dx
+        yield 0,  dx
+    elif c == '-' and dx == 0:
+        yield -dy, 0
+        yield  dy, 0
+    else:
+        assert c == '.' or (c == '|' and dx == 0) or (c == '-' and dy == 0)
+        yield dx, dy
+
+def energy(grid, start):
+    stack = [start]
+    seen = set([start])
     while stack:
-        x, y, dx, dy = stack.pop()
-        while 0 <= y < len(grid) and 0 <= x < len(grid[y]) and (x, y, dx, dy) not in seen:
-            seen.add((x, y, dx, dy))
-            energy[(x, y)] += 1
-            c = grid[y][x]
-            if c == '/':
-                dx, dy = -dy, -dx
-            elif c == '\\':
-                dx, dy = dy, dx
-            elif c == '|':
-                if dy == 0:
-                    stack.append((x, y - 1, 0, -1))
-                    dx, dy = 0, 1
-            elif c == '-':
-                if dx == 0:
-                    stack.append((x - 1, y, -1, 0))
-                    dx, dy = 1, 0
-            else:
-                assert c == '.'
-            x += dx
-            y += dy
-    return len(energy)
+        pos = stack.pop()
+        for n in neighbours(pos, grid):
+            if n not in seen:
+                stack.append(n)
+                seen.add(n)
+    return len(set((x, y) for x, y, _, _ in seen))
 
 if __name__ == '__main__':
     aoc.main()
