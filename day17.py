@@ -1,5 +1,5 @@
 import aoc
-from collections import defaultdict
+from collections import deque
 
 @aoc.puzzle()
 def part1(inp):
@@ -34,49 +34,27 @@ def parse_grid(inp):
     return [[int(c) for c in line] for line in inp.splitlines()]
 
 def find_path(grid, moves, start, goal):
-    loss = { start: 0 }
-    q = PQueue()
-    q.push(start, 0)
-    while q:
-        p = q.popmin()
-        if goal(p):
-            return loss[p]
-        for n in moves(p):
-            if valid(n[0], n[1], grid):
-                new_loss = loss[p] + grid[n[1]][n[0]]
-                if n not in loss:
-                    loss[n] = new_loss
-                    q.push(n, new_loss)
-                elif new_loss < (old_loss := loss[n]):
-                    loss[n] = new_loss
-                    q.pop(n, old_loss)
-                    q.push(n, new_loss)
+    loss = { start: 0}
+    q = deque(set() for _ in range(9))
+    q[0].add(start)
+    while True:
+        q.append(set())
+        for p in q[0]:
+            if goal(p):
+                return loss[p]
+            for n in moves(p):
+                if valid(n[0], n[1], grid):
+                    new_loss = loss[p] + grid[n[1]][n[0]]
+                    old_loss = loss.get(n)
+                    if old_loss is None or new_loss < old_loss:
+                        loss[n] = new_loss
+                        if old_loss is not None:
+                            q[old_loss - loss[p]].remove(n)
+                        q[new_loss - loss[p]].add(n)
+        q.popleft()
 
 def valid(x, y, grid):
     return 0 <= y < len(grid) and 0 <= x < len(grid[y])
-
-class PQueue:
-    def __init__(self):
-        self.vals = defaultdict(set)
-
-    def __bool__(self):
-        return bool(self.vals)
-
-    def push(self, val, p):
-        self.vals[p].add(val)
-
-    def pop(self, val, p):
-        val = self.vals[p].pop(val)
-        if not self.vals[p]:
-            del self.vals[p]
-
-    def popmin(self):
-        assert len(self.vals) <= 10 # since heat loss values are single digits
-        p = min(self.vals)
-        val = self.vals[p].pop()
-        if not self.vals[p]:
-            del self.vals[p]
-        return val
 
 if __name__ == '__main__':
     aoc.main()
