@@ -35,11 +35,10 @@ def parse_grid(inp):
 
 def find_path(grid, moves, start, goal):
     loss = { start: 0 }
-    q = defaultdict(set)
-    push(q, 0, start)
+    q = PQueue()
+    q.push(start, 0)
     while q:
-        assert len(q) <= 10 # since heat loss values are single digits
-        p = pop(q, min(q))
+        p = q.popmin()
         if goal(p):
             return loss[p]
         for n in moves(p):
@@ -47,26 +46,37 @@ def find_path(grid, moves, start, goal):
                 new_loss = loss[p] + grid[n[1]][n[0]]
                 if n not in loss:
                     loss[n] = new_loss
-                    push(q, new_loss, n)
+                    q.push(n, new_loss)
                 elif new_loss < (old_loss := loss[n]):
                     loss[n] = new_loss
-                    pop(q, old_loss, n)
-                    push(q, new_loss, n)
-
-def push(q, k, v):
-    q[k].add(v)
-
-def pop(q, k, v=None):
-    if v is None:
-        v = q[k].pop()
-    else:
-        q[k].pop(v)
-    if not q[k]:
-        del q[k]
-    return v
+                    q.pop(n, old_loss)
+                    q.push(n, new_loss)
 
 def valid(x, y, grid):
     return 0 <= y < len(grid) and 0 <= x < len(grid[y])
+
+class PQueue:
+    def __init__(self):
+        self.vals = defaultdict(set)
+
+    def __bool__(self):
+        return bool(self.vals)
+
+    def push(self, val, p):
+        self.vals[p].add(val)
+
+    def pop(self, val, p):
+        val = self.vals[p].pop(val)
+        if not self.vals[p]:
+            del self.vals[p]
+
+    def popmin(self):
+        assert len(self.vals) <= 10 # since heat loss values are single digits
+        p = min(self.vals)
+        val = self.vals[p].pop()
+        if not self.vals[p]:
+            del self.vals[p]
+        return val
 
 if __name__ == '__main__':
     aoc.main()
