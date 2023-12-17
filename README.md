@@ -50,3 +50,6 @@ Just follow the overly wordy instructions.
 
 Day 16:
 Brute forced again, and it's the slowest solution yet. Part 2 can probably be done more efficiently by detecting loops in the graph beforehand or something like that.
+
+Day 17:
+Boring Djikstra. Ultra slow. idk how to optimise this?
