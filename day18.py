@@ -26,7 +26,7 @@ def area(plan):
         area += px*y - x*py
         edge += n
     assert (x, y) == (0, 0)
-    return (area + edge)//2 + 1
+    return (abs(area) + edge)//2 + 1
 
 if __name__ == '__main__':
     aoc.main()
