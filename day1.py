@@ -1,30 +1,34 @@
 import aoc
-import re
-
-digit_names = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine']
 
 @aoc.puzzle()
 def part1(inp):
-    return sum(int(find_digit(s) + find_digit(reversed(s))) for s in inp.splitlines())
-
-def find_digit(s):
-    return next(filter(str.isdigit, s))
+    return sum(calibration_value(line, None) for line in inp.splitlines())
 
 @aoc.puzzle()
 def part2(inp):
-    first_digit = digit_finder(digit_names)
-    last_digit = digit_finder(name[::-1] for name in digit_names)
-    return sum(int(first_digit(s) + last_digit(s[::-1])) for s in inp.splitlines())
+    names = ('zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine')
+    return sum(calibration_value(line, names) for line in inp.splitlines())
 
-def digit_finder(names):
-    digits = {}
-    for d, name in enumerate(names):
-        digits[name] = str(d)
-    regex = re.compile('|'.join([r'[0-9]', *map(re.escape, digits.keys())]))
-    def find_digit(s):
-        group = regex.search(s).group()
-        return group if group.isdigit() else digits[group]
-    return find_digit
+def calibration_value(s, names):
+    return int(find_digit(s, names) + rfind_digit(s, names))
+
+def find_digit(s, names):
+    for i, c in enumerate(s):
+        if c.isdigit():
+            return c
+        if names is not None:
+            for d, name in enumerate(names):
+                if c == name[0] and s[i:i+len(name)] == name:
+                    return str(d)
+
+def rfind_digit(s, names):
+    for i, c in enumerate(reversed(s)):
+        if c.isdigit():
+            return c
+        if names is not None:
+            for d, name in enumerate(names):
+                if c == name[-1] and s[len(s)-len(name)-i:len(s)-i] == name:
+                    return str(d)
 
 if __name__ == '__main__':
     aoc.main()
