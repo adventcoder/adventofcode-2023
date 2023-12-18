@@ -1,21 +1,28 @@
 import aoc
 
-#   0
-# 1 + 2
-#   3
-dx = [ 0, -1, 1, 0]
-dy = [-1,  0, 0, 1]
+E = 0
+S = 1
+W = 2
+N = 3
+
+dx = [1, 0, -1,  0]
+dy = [0, 1,  0, -1]
 
 dirs = {
-    'J': (0, 1),
-    'L': (0, 2),
-    '|': (0, 3),
-    '-': (1, 2),
-    '7': (1, 3),
-    'F': (2, 3)
+    '|': (N, S),
+    '-': (E, W),
+    'L': (N, E),
+    'J': (N, W),
+    '7': (S, W),
+    'F': (S, E),
 }
 
-dd = { c: sum(dirs[c]) - 3 for c in dirs }
+def reverse(d):
+    return (d + 2) % 4
+
+def apply(c, d):
+    d1, d2 = dirs[c]
+    return d1 + d2 - reverse(d)
 
 def start(grid):
     for y, row in enumerate(grid):
@@ -27,7 +34,7 @@ def start_dir(grid, x, y):
     for d in range(4):
         nx = x + dx[d]
         ny = y + dy[d]
-        if 0 <= ny < len(grid) and 0 <= nx < len(grid[ny]) and 3 - d in dirs[grid[ny][nx]]:
+        if 0 <= ny < len(grid) and 0 <= nx < len(grid[ny]) and reverse(d) in dirs[grid[ny][nx]]:
             return d
 
 @aoc.puzzle()
@@ -41,7 +48,7 @@ def part1(inp):
         n += 1
         if grid[y][x] == 'S':
             break
-        d += dd[grid[y][x]]
+        d = apply(grid[y][x], d)
     return n // 2
 
 @aoc.puzzle()
@@ -57,7 +64,7 @@ def part2(inp):
         edge += 1
         if grid[y][x] == 'S':
             break
-        d += dd[grid[y][x]]
+        d = apply(grid[y][x], d)
     return (abs(area) - edge)//2 + 1
 
 if __name__ == '__main__':

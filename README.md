@@ -52,7 +52,7 @@ Day 16:
 Brute forced again, and it's the slowest solution yet. Part 2 can probably be done more efficiently by detecting loops in the graph beforehand or something like that.
 
 Day 17:
-Optimised to keep track of the next 10 layers instead of a heap since the graph weights are always just single digits. So it's more like BFS with extra layers than Djikstra. Still super slow. Could be cleaned up and optimised further by using a 3d grid instead of the current data structure.
+Optimised to keep track of the next 10 layers instead of a heap since the graph weights are always just single digits. It's more like BFS with extra layers than Djikstra. Still super slow. Could be optimised further by packing the state into an integer and using an array instead of dict.
 
 Day 18:
 Shoelace again. lol.
