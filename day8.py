@@ -2,6 +2,8 @@ import aoc
 import re
 from math import lcm
 
+#TODO: cleanup
+
 @aoc.puzzle()
 def part1(inp):
     return Map(inp).steps('AAA', lambda pos: pos == 'ZZZ')
