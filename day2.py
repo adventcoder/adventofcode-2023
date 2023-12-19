@@ -1,47 +1,34 @@
 import aoc
-from math import prod
 
-max_counts = { 'red': 12, 'green': 13, 'blue': 14 }
+colors = ('red', 'green', 'blue')
 
 @aoc.puzzle()
 def part1(inp):
     ans = 0
-    for id, hands in map(parse_game, inp.splitlines()):
-        if possible(hands):
-            ans += id
+    for line in inp.splitlines():
+        label, game = line.split(': ')
+        r, g, b = min_counts(game)
+        if r <= 12 and g <= 13 and b <= 14:
+            ans += int(label.split()[-1])
     return ans
-
-def possible(hands):
-    for hand in hands:
-        for n, color in hand:
-            if n > max_counts[color]:
-                return False
-    return True
 
 @aoc.puzzle()
 def part2(inp):
     ans = 0
-    for _, hands in map(parse_game, inp.splitlines()):
-        ans += prod(min_counts(hands).values())
+    for line in inp.splitlines():
+        r, g, b = min_counts(line.split(': ')[1])
+        ans += r * g * b
     return ans
 
-def min_counts(hands):
-    counts = {}
-    for hand in hands:
-        for n, color in hand:
-            if n > counts.get(color, 0):
-                counts[color] = n
+def min_counts(game):
+    counts = [0] * len(colors)
+    for hand in game.split('; '):
+        for entry in hand.split(', '):
+            pair = entry.split()
+            n = int(pair[0])
+            i = colors.index(pair[1])
+            counts[i] = max(counts[i], n)
     return counts
-
-def parse_game(line):
-    label, hands = line.split(':', 2)
-    id = int(label.split()[-1])
-    return id, [parse_hand(hand) for hand in hands.split(';')]
-
-def parse_hand(hand):
-    tokens = hand.replace(',', '').split()
-    for i in range(0, len(tokens), 2):
-        yield int(tokens[i]), tokens[i + 1]
 
 if __name__ == '__main__':
     aoc.main()
