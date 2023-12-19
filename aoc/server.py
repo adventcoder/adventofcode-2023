@@ -1,4 +1,5 @@
 from datetime import datetime, timezone, timedelta
+import re
 import requests
 from . import cache
 
@@ -18,3 +19,8 @@ def fetch_input(day, session):
     res = requests.get(f'{url}/day/{day}/input', cookies={ 'session': session })
     res.raise_for_status()
     return res.text
+
+def get_answers(day, session):
+    res = requests.get(f'{url}/day/{day}', cookies={ 'session': session })
+    res.raise_for_status()
+    return list(re.findall(r'Your puzzle answer was <code>([^<]*)</code>.', res.text))
