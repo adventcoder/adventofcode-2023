@@ -1,112 +1,94 @@
 import aoc
 from math import prod
 
-#TODO: cleanup?
-
 @aoc.puzzle()
 def part1(inp):
     chunks = inp.split('\n\n')
     workflows = parse_workflows(chunks[0])
-    return sum(sum(part.values()) for part in parse_parts(chunks[1]) if accepted(workflows, part))
+    parts = parse_parts(chunks[1])
+    return sum(value for part in parts if accepted(workflows, part) for value in part.values())
 
 @aoc.puzzle()
 def part2(inp):
     chunks = inp.split('\n\n')
     workflows = parse_workflows(chunks[0])
-    accepted = accepted_super(workflows, { c: range(1, 4001) for c in 'xmas'})
-    return sum(parts(superpart) for superpart in accepted)
-
-def parts(superpart):
-    return prod(value.stop - value.start for value in superpart.values())
+    parts = { c: range(1, 4001) for c in 'xmas' }
+    return count_accepted(workflows, parts)
 
 def parse_workflows(chunk):
     workflows = {}
     for line in chunk.splitlines():
         i = line.index('{')
-        rules = []
-        for atom in line[i+1:-1].split(','):
-            pair = atom.split(':')
-            if len(pair) == 1:
-                rules.append((pair[0], None))
-            else:
-                rules.append((pair[1], parse_expr(pair[0])))
-        name = line[:i]
-        workflows[name] = rules
+        workflows[line[:i]] = Workflow(line[i+1:-1].split(','))
     return workflows
 
 def parse_parts(chunk):
     for line in chunk.splitlines():
         part = {}
-        for atom in line[1:-1].split(','):
-            name, op, value = parse_expr(atom)
-            assert op == '='
-            part[name] = value
+        for expr in line[1:-1].split(','):
+            name, value = expr.split('=')
+            part[name] = int(value)
         yield part
 
-def parse_expr(s):
-    s = s.replace('=', ' = ')
-    s = s.replace('<', ' < ')
-    s = s.replace('>', ' > ')
-    tokens = s.split()
-    return tokens[0], tokens[1], int(tokens[2])
-
 def accepted(workflows, part, name='in'):
+    while True:
+        if name == 'R':
+            return False
+        if name == 'A':
+            return True
+        name = workflows[name].apply(part)
+
+def count_accepted(workflows, parts, name='in'):
     if name == 'R':
-        return False
+        return 0
     if name == 'A':
-        return True
-    for out, expr in workflows[name]:
-        if test(expr, part):
-            return accepted(workflows, part, out)
+        return prod(len(values) for values in parts.values())
+    total = 0
+    for expr, target in workflows[name].rules:
+        total += count_accepted(workflows, expr.filter(parts), target)
+        parts = expr.filter_complement(parts)
+    total += count_accepted(workflows, parts, workflows[name].default_target)
+    return total
 
-def test(expr, part):
-    if expr is None:
-        return True
-    name, op, value = expr
-    if op == '<':
-        return part[name] < value
-    if op == '>' and part[name] > value:
-        return part[name] > value
+class Workflow:
+    def __init__(self, rules):
+        self.default_target = rules.pop()
+        self.rules = []
+        for rule in rules:
+            expr, target = rule.split(':')
+            self.rules.append((Expr(expr), target))
 
-def accepted_super(workflows, superpart, name='in'):
-    if name == 'R':
-        return []
-    if name == 'A':
-        return [superpart]
-    result = []
-    for out, expr in workflows[name]:
-        passed, failed = split(expr, superpart)
-        if passed is not None:
-            result.extend(accepted_super(workflows, passed, out))
-        if failed is None:
-            return result
-        superpart = failed
+    def apply(self, part):
+        for expr, target in self.rules:
+            if expr.test(part):
+                return target
+        return self.default_target
 
-def split(expr, superpart):
-    if expr is None:
-        return superpart, None
-    name, op, value = expr
-    if op == '<' and superpart[name].start < value:
-        if superpart[name].stop <= value:
-            return superpart, None
-        else:
-            return set_stop(superpart, name, value), set_start(superpart, name, value)
-    if op == '>' and superpart[name].stop >= value:
-        if superpart[name].start > value:
-            return superpart, None
-        else:
-            return set_start(superpart, name, value + 1), set_stop(superpart, name, value + 1)
-    return None, superpart
+class Expr:
+    def __init__(self, expr):
+        self.name = expr[0]
+        self.op = expr[1]
+        self.value = int(expr[2:])
 
-def set_stop(superpart, name, stop):
-    copy = superpart.copy()
-    copy[name] = range(copy[name].start, stop)
-    return copy
+    def test(self, part):
+        if self.op == '<':
+            return part[self.name] < self.value
+        if self.op == '>':
+            return part[self.name] > self.value
 
-def set_start(superpart, name, start):
-    copy = superpart.copy()
-    copy[name] = range(start, copy[name].stop)
-    return copy
+    def filter(self, parts):
+        values = parts[self.name]
+        if self.op == '<': # values & range(-inf, self.value)
+            return { **parts, self.name: range(values.start, min(values.stop, self.value)) }
+        if self.op == '>': # values & range(self.value + 1, inf)
+            return { **parts, self.name: range(max(values.start, self.value + 1), values.stop) }
+
+    def filter_complement(self, parts):
+        values = parts[self.name]
+        if self.op == '<': # values & range(self.value, inf)
+            return { **parts, self.name: range(max(values.start, self.value), values.stop) }
+        if self.op == '>': # values & range(-inf, self.value + 1)
+            return { **parts, self.name: range(values.start, min(values.stop, self.value + 1)) }
 
 if __name__ == '__main__':
     aoc.main()
