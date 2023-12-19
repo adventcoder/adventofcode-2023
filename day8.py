@@ -1,6 +1,6 @@
 import aoc
 import re
-from math import lcm
+from utils import Lattice
 
 @aoc.puzzle()
 def part1(inp):
@@ -17,12 +17,16 @@ def part1(inp):
 @aoc.puzzle()
 def part2(inp):
     dirs, nodes = parse(inp)
-    steps = 1
+    lattice = Lattice()
+    steps = 0
     for name in nodes:
         if name.endswith('A'):
             end_offsets, loop_offset, period = solve_steps(name, dirs, nodes)
-            assert len(end_offsets) == 1 and end_offsets[0] == period and loop_offset < period
-            steps = lcm(steps, period)
+            assert len(end_offsets) == 1
+            end_offset = end_offsets[0]
+            assert end_offset >= loop_offset
+            lattice &= Lattice(end_offset, period)
+            steps += (lattice.start - max(steps, end_offset)) % lattice.step # ceil steps to fit lattice
     return steps
 
 def parse(inp):
