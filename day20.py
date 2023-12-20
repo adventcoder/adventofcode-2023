@@ -1,6 +1,8 @@
 import aoc
-from collections import defaultdict, deque
+from collections import deque
 from math import lcm
+
+#TODO: this is still ugly
 
 @aoc.command()
 @aoc.pass_input()
@@ -20,84 +22,95 @@ def makedot(inp):
 
 @aoc.puzzle()
 def part1(inp):
-    gates, outputs, _ = parse_gates(inp)
+    modules = parse_modules(inp)
     counts = [0] * 2
     queue = deque()
     for _ in range(1000):
-        queue.append(('button', 'broadcaster', 0))
+        queue.append(('broadcaster', 'button', 0))
         while queue:
-            from_addr, to_addr, pulse = queue.popleft()
+            name, input, pulse = queue.popleft()
             counts[pulse] += 1
-            if to_addr in gates:
-                new_pulse = gates[to_addr](from_addr, pulse)
-                if new_pulse is not None:
-                    for output in outputs[to_addr]:
-                        queue.append((to_addr, output, new_pulse))
+            queue.extend(modules[name].apply(name, input, pulse))
     return counts[0] * counts[1]
 
 @aoc.puzzle()
 def part2(inp):
-    gates, outputs, inputs = parse_gates(inp)
-    starts = [name for name in outputs['broadcaster']]
-    ends = [name2 for name in inputs['rx'] for name2 in inputs[name]]
-    total = 1
-    for start in starts:
-        queue = deque()
-        presses = 0
-        done = False
-        while not done:
-            queue.append(('broadcaster', start, 0))
-            while queue:
-                from_addr, to_addr, pulse = queue.popleft()
-                if from_addr in ends and pulse == 1:
-                    done = True
-                if to_addr in gates:
-                    new_pulse = gates[to_addr](from_addr, pulse)
-                    if new_pulse is not None:
-                        for output in outputs[to_addr]:
-                            queue.append((to_addr, output, new_pulse))
-            presses += 1
-        total = lcm(total, presses)
-    return total
+    modules = parse_modules(inp)
+    starts = modules['broadcaster'].outputs
+    ends = set()
+    for input in modules['rx'].inputs:
+        for name in modules[input].inputs:
+            ends.add(name)
+    cycles = [presses(modules, start, ends) for start in starts]
+    return lcm(*cycles)
 
-def parse_gates(inp):
-    gates = {}
-    outputs = {}
-    inputs = defaultdict(set)
+def presses(modules, start, ends):
+    presses = 0
+    queue = deque()
+    while True:
+        presses += 1
+        queue.append((start, 'broadcaster', 0))
+        while queue:
+            name, input, pulse = queue.popleft()
+            if name in ends and pulse == 0:
+                return presses
+            queue.extend(modules[name].apply(name, input, pulse))
+
+def parse_modules(inp):
+    modules = {}
     for line in inp.splitlines():
         name, line = line.split(' -> ')
+        outputs = line.split(', ')
+        type = Broadcaster
         if name[0] == '%':
             name = name[1:]
-            gates[name] = flipflop()
+            type = FlipFlop
         elif name[0] == '&':
             name = name[1:]
-            gates[name] = conjunction(inputs[name])
-        else:
-            gates[name] = broadcast
-        outputs[name] = line.split(', ')
-        for output in outputs[name]:
-            inputs[output].add(name)
-    return gates, outputs, inputs
+            type = Conjunction
+        modules[name] = type(outputs)
+    modules['rx'] = Broadcaster([])
+    for name, module in modules.items():
+        for output in module.outputs:
+            modules[output].inputs.append(name)
+    for module in modules.values():
+        module.reset()
+    return modules
 
-def broadcast(addr, pulse):
-    return pulse
+class Broadcaster:
+    def __init__(self, outputs):
+        self.outputs = outputs
+        self.inputs = []
 
-def flipflop():
-    state = 0
-    def func(addr, pulse):
-        nonlocal state
+    def reset(self):
+        pass
+
+    def transform(self, input, pulse):
+        return pulse
+
+    def apply(self, name, input, pulse):
+        pulse = self.transform(input, pulse)
+        if pulse is not None:
+            for output in self.outputs:
+                yield output, name, pulse
+
+class FlipFlop(Broadcaster):
+    def reset(self):
+        self.state = 0
+
+    def transform(self, input, pulse):
         if pulse == 0:
-            state ^= 1
-            return state
+            self.state ^= 1
+            return self.state
         return None
-    return func
 
-def conjunction(inputs):
-    state = {}
-    def func(addr, pulse):
-        state[addr] = pulse
-        return 0 if all(state.get(name, 0) for name in inputs) else 1
-    return func
+class Conjunction(Broadcaster):
+    def reset(self):
+        self.state = bytearray(len(self.inputs))
+
+    def transform(self, input, pulse):
+        self.state[self.inputs.index(input)] = pulse
+        return 0 if all(self.state) else 1
 
 if __name__ == '__main__':
     aoc.main()
