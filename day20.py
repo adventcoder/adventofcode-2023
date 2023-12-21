@@ -2,7 +2,7 @@ import aoc
 from collections import deque
 from math import lcm
 
-#TODO: this is still ugly
+#TODO: cleanup?
 
 @aoc.command()
 @aoc.pass_input()
@@ -26,91 +26,71 @@ def part1(inp):
     counts = [0] * 2
     queue = deque()
     for _ in range(1000):
-        queue.append(('broadcaster', 'button', 0))
+        queue.append(('broadcaster', 0, 'button'))
         while queue:
-            name, input, pulse = queue.popleft()
+            name, pulse, input = queue.popleft()
             counts[pulse] += 1
-            queue.extend(modules[name].apply(name, input, pulse))
+            queue.extend(modules[name].recv(pulse, input))
     return counts[0] * counts[1]
 
 @aoc.puzzle()
 def part2(inp):
     modules = parse_modules(inp)
-    starts = modules['broadcaster'].outputs
-    ends = set()
-    for input in modules['rx'].inputs:
-        for name in modules[input].inputs:
-            ends.add(name)
-    cycles = [presses(modules, start, ends) for start in starts]
+    ends = set(input for name in modules['rx'].inputs for input in modules[name].inputs)
+    cycles = [presses(start, ends, modules) for start in modules['broadcaster'].outputs]
     return lcm(*cycles)
 
-def presses(modules, start, ends):
-    presses = 0
+def presses(start, ends, modules):
     queue = deque()
+    presses = 0
     while True:
+        queue.append((start, 0, 'broadcaster'))
         presses += 1
-        queue.append((start, 'broadcaster', 0))
         while queue:
-            name, input, pulse = queue.popleft()
+            name, pulse, input = queue.popleft()
             if name in ends and pulse == 0:
                 return presses
-            queue.extend(modules[name].apply(name, input, pulse))
+            queue.extend(modules[name].recv(pulse, input))
 
 def parse_modules(inp):
     modules = {}
     for line in inp.splitlines():
-        name, line = line.split(' -> ')
-        outputs = line.split(', ')
-        type = Broadcaster
-        if name[0] == '%':
-            name = name[1:]
-            type = FlipFlop
-        elif name[0] == '&':
-            name = name[1:]
-            type = Conjunction
-        modules[name] = type(outputs)
-    modules['rx'] = Broadcaster([])
-    for name, module in modules.items():
-        for output in module.outputs:
-            modules[output].inputs.append(name)
-    for module in modules.values():
-        module.reset()
+        mod = Module(line)
+        modules[mod.name] = mod
+    mod = Module('rx')
+    modules[mod.name] = mod
+    for mod in modules.values():
+        for output in mod.outputs:
+            modules[output].inputs.append(mod.name)
     return modules
 
-class Broadcaster:
-    def __init__(self, outputs):
-        self.outputs = outputs
+class Module:
+    def __init__(self, line):
+        name, *rest = line.split(' -> ')
+        self.outputs = rest[0].split(', ') if rest else []
         self.inputs = []
+        if not name[0].isalpha():
+            self.type = name[0]
+            self.name = name[1:]
+            if self.type == '%':
+                self.state = 0
+            elif self.type == '&':
+                self.state = {}
+        else:
+            self.type = None
+            self.name = name
 
-    def reset(self):
-        pass
-
-    def transform(self, input, pulse):
-        return pulse
-
-    def apply(self, name, input, pulse):
-        pulse = self.transform(input, pulse)
-        if pulse is not None:
-            for output in self.outputs:
-                yield output, name, pulse
-
-class FlipFlop(Broadcaster):
-    def reset(self):
-        self.state = 0
-
-    def transform(self, input, pulse):
-        if pulse == 0:
+    def recv(self, pulse, input):
+        if self.type == '%':
+            if pulse == 1:
+                return
             self.state ^= 1
-            return self.state
-        return None
-
-class Conjunction(Broadcaster):
-    def reset(self):
-        self.state = bytearray(len(self.inputs))
-
-    def transform(self, input, pulse):
-        self.state[self.inputs.index(input)] = pulse
-        return 0 if all(self.state) else 1
+            pulse = self.state
+        elif self.type == '&':
+            self.state[input] = pulse
+            pulse = 0 if all(self.state.get(input, 0) for input in self.inputs) else 1
+        for output in self.outputs:
+            yield output, pulse, self.name
 
 if __name__ == '__main__':
     aoc.main()
