@@ -56,3 +56,6 @@ Optimised to keep track of the next 10 layers instead of a heap since the graph 
 
 Day 18:
 Shoelace again. lol.
+
+Day 21:
+Another cycle detection puzzle very much tied to the specific patterns in the input. My solutions is extremely slow and not general at all.

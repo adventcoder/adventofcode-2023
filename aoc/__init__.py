@@ -17,6 +17,8 @@ def puzzle(input=None):
     def wrap(func):
         @command()
         @pass_input(input)
+        # @click.option('--submit')
+        # @click.option('--check')
         @wraps(func)
         def new_func(*args, **kwargs):
             print(Answer(func, *args, **kwargs))
@@ -29,6 +31,7 @@ def pass_input(input=None):
         @click.option('--session', envvar='ADVENTOFCODE_SESSION')
         @click.option('--input')
         @click.option('--input-file', type=click.File('r'))
+        # @click.option('--wait-for-input')
         @click.pass_context
         @wraps(func)
         def new_func(ctx, session, input, input_file, *args, **kwargs):
