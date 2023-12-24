@@ -36,6 +36,7 @@ def find_longest_path(grid):
         return max_steps
     return recur(0, 0)
 
+# TODO: kind of hacky and ugly
 def make_graph(grid):
     nodes = []
     for y in range(len(grid)):

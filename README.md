@@ -65,3 +65,6 @@ Spent way too long cleaning this.
 
 Day 23:
 This is the slowest day so far. Nothing to do but brute force since it's NP-hard (for part 2 anyway). I didn't create the compressed graph originally, and it was still running by the time I got it implemented.
+
+Day 24:
+ARGH
