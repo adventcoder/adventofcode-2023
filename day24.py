@@ -11,6 +11,17 @@ def part1(inp, min=200000000000000, max=400000000000000):
         for j in range(i+1, len(rays)):
             (px1, py1, _), (vx1, vy1, _) = rays[i]
             (px2, py2, _), (vx2, vy2, _) = rays[j]
+            #
+            # P1 + t1 V1 = P2 + t2 V2
+            #
+            #          t1 V1 = t2 V2 + P2-P1
+            # t1 V1.perp(V2) = (P2-P1).perp(V2)
+            #             t1 = (P2-P1).perp(V2)/V1.perp(V2)
+            #
+            #          t2 V2 = t1 V1 + P1-P2
+            # t2 V2.perp(V1) = (P1-P2).perp(V1)
+            #             t2 = (P1-P2).perp(V1)/V2.perp(V1)
+            #
             d = vx2*vy1 - vy2*vx1
             if d == 0:
                 continue
@@ -60,6 +71,13 @@ def part2(inp):
     #                      [:]
     #                      [V]
     #                      [:]
+    #
+    # ---
+    #
+    # Pi + ti Vi = P + ti V
+    #  ti (Vi-V) = (P-Pi)
+    #         ti = (P-Pi).(Vi-V)/(Vi-V).(Vi-V)
+    #
     M = []
     for i in range(2):
         (P1, V1), (P2, V2) = rays[i:i+2]
