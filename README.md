@@ -68,3 +68,6 @@ This is the slowest day so far. Nothing to do but brute force since it's NP-hard
 
 Day 24:
 ARGH
+
+Day 25:
+An anticlimatic ending. I used graphwiz to solve. idk if I'll come back to this. Anyway merry Christmas.
