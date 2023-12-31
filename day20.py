@@ -1,5 +1,5 @@
 import aoc
-from collections import deque
+from collections import deque, defaultdict
 from math import lcm
 
 #TODO: cleanup?
@@ -22,75 +22,62 @@ def makedot(inp):
 
 @aoc.puzzle()
 def part1(inp):
-    modules = parse_modules(inp)
+    inputs, outputs, groups = parse_modules(inp)
     counts = [0] * 2
+    # We only need to keep track of the last output pulse for each module
+    pulses = { name: 0 for name in outputs }
     queue = deque()
     for _ in range(1000):
-        queue.append(('broadcaster', 0, 'button'))
+        counts[0] += 1
+        queue.extend(('broadcaster', output) for output in outputs['broadcaster'])
         while queue:
-            name, pulse, input = queue.popleft()
-            counts[pulse] += 1
-            queue.extend(modules[name].recv(pulse, input))
+            input, name = queue.popleft()
+            counts[pulses[input]] += 1
+            if name in groups['%']:
+                if pulses[input] == 0:
+                    pulses[name] ^= 1
+                    queue.extend((name, output) for output in outputs[name])
+            elif name in groups['&']:
+                pulses[name] = 0 if all(pulses[input] for input in inputs[name]) else 1
+                queue.extend((name, output) for output in outputs[name])
     return counts[0] * counts[1]
 
 @aoc.puzzle()
 def part2(inp):
-    modules = parse_modules(inp)
-    ends = set(input for name in modules['rx'].inputs for input in modules[name].inputs)
-    cycles = [presses(start, ends, modules) for start in modules['broadcaster'].outputs]
+    _, outputs, groups = parse_modules(inp)
+    cycles = [cycle_time(start, outputs, groups) for start in outputs['broadcaster']]
     return lcm(*cycles)
 
-def presses(start, ends, modules):
-    queue = deque()
-    presses = 0
+def cycle_time(start, outputs, groups):
+    common, = set(outputs[start]) & groups['&']
+    n = 0
+    shift = 0
     while True:
-        queue.append((start, 0, 'broadcaster'))
-        presses += 1
-        while queue:
-            name, pulse, input = queue.popleft()
-            if name in ends and pulse == 0:
-                return presses
-            queue.extend(modules[name].recv(pulse, input))
+        if common in outputs[start]:
+            n |= 1 << shift
+        shift += 1
+        nexts = set(outputs[start]) & groups['%'] 
+        if not nexts:
+            break
+        start, = nexts
+    return n
 
 def parse_modules(inp):
-    modules = {}
+    inputs = {}
+    outputs = {}
+    groups = defaultdict(set)
     for line in inp.splitlines():
-        mod = Module(line)
-        modules[mod.name] = mod
-    mod = Module('rx')
-    modules[mod.name] = mod
-    for mod in modules.values():
-        for output in mod.outputs:
-            modules[output].inputs.append(mod.name)
-    return modules
-
-class Module:
-    def __init__(self, line):
-        name, *rest = line.split(' -> ')
-        self.outputs = rest[0].split(', ') if rest else []
-        self.inputs = []
+        name, line = line.split(' -> ')
         if not name[0].isalpha():
-            self.type = name[0]
-            self.name = name[1:]
-            if self.type == '%':
-                self.state = 0
-            elif self.type == '&':
-                self.state = {}
-        else:
-            self.type = None
-            self.name = name
-
-    def recv(self, pulse, input):
-        if self.type == '%':
-            if pulse == 1:
-                return
-            self.state ^= 1
-            pulse = self.state
-        elif self.type == '&':
-            self.state[input] = pulse
-            pulse = 0 if all(self.state.get(input, 0) for input in self.inputs) else 1
-        for output in self.outputs:
-            yield output, pulse, self.name
+            groups[name[0]].add(name[1:])
+            name = name[1:]
+        inputs[name] = []
+        outputs[name] = line.split(', ')
+    inputs['rx'] = []
+    for name in outputs:
+        for output in outputs[name]:
+            inputs[output].append(name)
+    return inputs, outputs, groups
 
 if __name__ == '__main__':
     aoc.main()
